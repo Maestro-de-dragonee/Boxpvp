@@ -46,6 +46,3 @@ permissions:
   boxpvp.admin:
     description: Use all admin commands
     default: op
-  boxpvp.bypass:
-    description: Build/break anywhere while in creative mode
-    default: op

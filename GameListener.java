@@ -56,8 +56,9 @@ public class GameListener implements Listener {
 
     // ------------------------------------------------------------ helpers
 
+    /** Creative-mode players ignore every region flag (and don't trigger decay), so admins can always build and repair. */
     private boolean bypass(Player p) {
-        return p.getGameMode() == GameMode.CREATIVE && p.hasPermission("boxpvp.bypass");
+        return p.getGameMode() == GameMode.CREATIVE;
     }
 
     private void deny(Player p, String msg) {
@@ -156,8 +157,8 @@ public class GameListener implements Listener {
 
         if (attacker != null && !attacker.equals(victim)) {
             // PvP flag must allow it at BOTH locations.
-            if (!plugin.regions().allowed(victim.getLocation(), "pvp")
-                    || !plugin.regions().allowed(attacker.getLocation(), "pvp")) {
+            if (!bypass(attacker) && (!plugin.regions().allowed(victim.getLocation(), "pvp")
+                    || !plugin.regions().allowed(attacker.getLocation(), "pvp"))) {
                 e.setCancelled(true);
                 return;
             }
@@ -335,6 +336,13 @@ public class GameListener implements Listener {
         if (!plugin.regions().allowed(e.getBlock().getLocation(), "build")) {
             e.setCancelled(true);
             deny(p, "&cYou can't break blocks here.");
+            return;
+        }
+        // Inside a decay area only blocks placed by players (the ones that will vanish) can be broken,
+        // so the original build can never be damaged.
+        if (plugin.regions().decayAt(e.getBlock().getLocation()) > 0 && !plugin.regions().isDecayTracked(e.getBlock())) {
+            e.setCancelled(true);
+            deny(p, "&cYou can only break blocks that were placed in this area.");
         }
     }
 
@@ -354,10 +362,13 @@ public class GameListener implements Listener {
     // Blocks placed inside a decay region vanish after the configured time.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlaceDecay(BlockPlaceEvent e) {
+        if (bypass(e.getPlayer())) {
+            return; // creative builds are permanent
+        }
         Block b = e.getBlock();
         int secs = plugin.regions().decayAt(b.getLocation());
         if (secs > 0) {
-            plugin.regions().trackDecay(b, secs);
+            plugin.regions().trackDecay(b, secs, e.getBlockReplacedState());
         }
     }
 
@@ -386,7 +397,8 @@ public class GameListener implements Listener {
         java.util.Iterator<Block> it = e.blockList().iterator();
         while (it.hasNext()) {
             Block b = it.next();
-            if (mines.at(b) != null || !regions.allowed(b.getLocation(), "build")) {
+            boolean protectedDecayBlock = regions.decayAt(b.getLocation()) > 0 && !regions.isDecayTracked(b);
+            if (mines.at(b) != null || !regions.allowed(b.getLocation(), "build") || protectedDecayBlock) {
                 it.remove();
             }
         }

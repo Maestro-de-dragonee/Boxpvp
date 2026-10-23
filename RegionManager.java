@@ -7,6 +7,7 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -41,8 +42,19 @@ public class RegionManager {
     private final Map<UUID, Location[]> selections = new HashMap<UUID, Location[]>();
     private final Random rnd = new Random();
     private BukkitTask rainTask;
-    private final Map<Block, Integer> decaying = new HashMap<Block, Integer>();
+    private final Map<Block, DecayEntry> decaying = new HashMap<Block, DecayEntry>();
     private int decayCounter = 0;
+
+    /** A player-placed block waiting to vanish, plus whatever it replaced (air, grass, water...). */
+    private static class DecayEntry {
+        final int id;
+        final BlockState replaced;
+
+        DecayEntry(int id, BlockState replaced) {
+            this.id = id;
+            this.replaced = replaced;
+        }
+    }
 
     public RegionManager(BoxPvP plugin) {
         this.plugin = plugin;
@@ -185,31 +197,54 @@ public class RegionManager {
         return best == null ? 0 : best.decaySeconds;
     }
 
-    public void trackDecay(final Block b, int seconds) {
+    /** True if this block was placed by a player and is still waiting to decay. */
+    public boolean isDecayTracked(Block b) {
+        return decaying.containsKey(b);
+    }
+
+    public void trackDecay(final Block b, int seconds, BlockState replaced) {
         final int id = ++decayCounter;
-        decaying.put(b, id);
+        decaying.put(b, new DecayEntry(id, replaced));
         Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
             @Override
             public void run() {
-                Integer cur = decaying.get(b);
+                DecayEntry cur = decaying.get(b);
                 // Only remove if this exact placement is still the tracked one.
-                if (cur != null && cur.intValue() == id) {
+                if (cur != null && cur.id == id) {
                     decaying.remove(b);
                     b.getWorld().spawnParticle(Particle.SMOKE_NORMAL, b.getLocation().add(0.5, 0.5, 0.5), 6, 0.25, 0.25, 0.25, 0.01);
-                    b.setType(Material.AIR);
+                    restore(b, cur.replaced);
                 }
             }
         }, Math.max(1, seconds) * 20L);
     }
 
+    /** Puts back whatever the placed block replaced (normally just air). */
+    private void restore(Block b, BlockState replaced) {
+        if (replaced != null) {
+            replaced.update(true, false);
+        } else {
+            b.setType(Material.AIR);
+        }
+    }
+
+    /** The block was broken by a player: stop tracking it, and put back anything it had replaced (e.g. water). */
     public void untrack(Block b) {
-        decaying.remove(b);
+        final DecayEntry en = decaying.remove(b);
+        if (en != null && en.replaced != null && en.replaced.getType() != Material.AIR) {
+            Bukkit.getScheduler().runTask(plugin, new Runnable() {
+                @Override
+                public void run() {
+                    en.replaced.update(true, false);
+                }
+            });
+        }
     }
 
     /** Removes every block still waiting to decay (called on shutdown). */
     public void clearDecaying() {
-        for (Block b : new ArrayList<Block>(decaying.keySet())) {
-            b.setType(Material.AIR);
+        for (Map.Entry<Block, DecayEntry> en : new ArrayList<Map.Entry<Block, DecayEntry>>(decaying.entrySet())) {
+            restore(en.getKey(), en.getValue().replaced);
         }
         decaying.clear();
     }

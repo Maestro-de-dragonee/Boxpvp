@@ -30,8 +30,9 @@ If Maven can't download `bungeecord-chat`, tell me the error and I'll adjust the
 2. Restart the server. A `plugins/BoxPvP/` folder with `config.yml` appears.
 3. Make yourself operator (or give the permission `boxpvp.admin`).
 
-Permissions: `boxpvp.admin` (all admin commands, default op) and `boxpvp.bypass` (build/break anywhere
-while in **creative**, default op).
+Permission: `boxpvp.admin` (all admin commands, default op).
+**Creative-mode players ignore all region flags** (build, PvP, drops, etc.) and their blocks never decay,
+so admins can always build and repair - switch to survival to test your flags.
 
 ---------------------------------------------------------------------------------------
 ## 3. Set up your map (suggested order)
@@ -44,21 +45,12 @@ while in **creative**, default op).
 
 **Crafting area** - select it, `/region create crafting 10`, then `pvp deny` and `build deny`.
 
-**Disappearing-block area (blocks vanish after 20s)** - select the area, `/region create parkour 5`, then
-`/region decay parkour 20`. Any block a player places inside it disappears after 20 seconds (no drops). Blocks
-that were already there are never touched. Leave `build` on `allow`/unset so players can place. Turn it off with
-`/region decay parkour off`. Water/lava from buckets is not tracked. Remaining decay blocks are cleared on a clean shutdown.
-
-**Enchanting area** - select it from floor to the **air layer just under the ceiling**
-(XP bottles spawn at the top layer of the region), `/region create enchanting 10`, then
-`/region flag enchanting build deny` and `/region flag enchanting xp-rain allow`.
-Place your enchanting tables normally; `build deny` stops people breaking them. PvP stays on there.
-
-**Arena** - nothing needed: with no region, the defaults in `config.yml` apply (pvp on, build on).
-(To be explicit, make an `arena` region with priority 1 and set `pvp allow`, `build allow`.)
-
-Flags: `pvp`, `build`, `fall-damage`, `mob-spawn`, `item-drop`, `xp-rain`, `hunger`  - each `allow`, `deny` or `none`.
-Use `/region info <name>`, `/region list`, `/region delete <name>`, `/region priority <name> <n>`, `/region decay <name> <seconds|off>`.
+**Disappearing-block area (blocks vanish after 20s)** - select the area, `/region create bridges 5`, then
+`/region decay bridges 20`. Any block a survival player places inside it disappears after 20 seconds (no drops) and
+whatever it replaced is put back (air, water, grass...). Blocks that were already there **cannot be broken or blown up**
+inside the area, so the original build is always safe - only blocks placed by players can be broken. Creative-mode
+players can build and break anything and their blocks stay. Leave `build` on `allow`/unset so players can place.
+Turn it off with `/region decay bridges off`. Remaining decay blocks are cleared on a clean shutdown.
 
 **Mines (auto-smelting, regenerating)**
 1. Select the area with the wand, then `/mine create <name>` then `/mine fill <name>`.
