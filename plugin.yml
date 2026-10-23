@@ -1,0 +1,51 @@
+name: BoxPvP
+version: 1.0.0
+main: com.boxpvp.BoxPvP
+author: BoxPvP
+description: Box PvP gamemode - regions, mines, shops, launch pads, stats and killstreaks.
+commands:
+  stats:
+    description: View PvP stats
+    usage: /stats [player]
+  top:
+    description: View leaderboards
+    usage: /top [kills|deaths|streak|coins|kdr]
+  spawn:
+    description: Return to spawn (not while in combat)
+    usage: /spawn
+  setspawn:
+    description: Set the spawn / respawn point
+    usage: /setspawn
+  setcoins:
+    description: Set a player's coins
+    usage: /setcoins <player> <amount>
+  boxpvp:
+    description: Plugin admin command
+    usage: /boxpvp <reload|help>
+  region:
+    aliases: [rg]
+    description: Manage regions and flags
+    usage: /region <wand|pos1|pos2|create|delete|list|info|flag|priority|decay>
+  mine:
+    description: Manage regenerating mines
+    usage: /mine <create|delete|list|info|fill|block|regen>
+  npc:
+    description: Create or remove shop NPCs
+    usage: /npc <create|remove> [seller|buyer]
+  rank:
+    description: Create and give cosmetic rank prefixes (admin only)
+    usage: /rank <create|setprefix|delete|list|give|take|check>
+  dummy:
+    description: Create or remove DPS training dummies
+    usage: /dummy <create|remove>
+  launchpad:
+    aliases: [lp]
+    description: Manage launch pads
+    usage: /launchpad <create|setlanding|delete|list|info|arc>
+permissions:
+  boxpvp.admin:
+    description: Use all admin commands
+    default: op
+  boxpvp.bypass:
+    description: Build/break anywhere while in creative mode
+    default: op

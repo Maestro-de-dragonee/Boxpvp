@@ -1,0 +1,167 @@
+# ============================================================
+#  BoxPvP configuration  (use /boxpvp reload after editing)
+#  Colour codes use & (e.g. &6 = gold).
+# ============================================================
+
+prefix: "&8[&6BoxPvP&8] &7"
+autosave-minutes: 5
+teleport-to-spawn-on-join: true
+death-messages: true          # show the normal death message
+keep-level: true              # keep XP levels on death (inventory is always kept)
+combat-tag-seconds: 10        # /spawn is blocked for this long after PvP damage
+
+# Default value of each region flag when NO region sets it.
+default-flags:
+  pvp: true
+  build: true
+  fall-damage: true
+  mob-spawn: true
+  item-drop: true
+  xp-rain: false
+  hunger: false              # false = nobody loses hunger (default). true = normal hunger. Per-region: /region flag <name> hunger allow
+
+coins:
+  per-kill: 10
+  streak-bonus-per-kill: 2     # extra coins per kill of your current streak (after the 1st)
+  streak-bonus-cap: 40         # max streak bonus
+  streak-break-bonus: 3        # coins per kill of the victim's streak when you end it
+  streak-break-cap: 60
+  death-penalty: 0             # coins lost on death
+  anti-farm-seconds: 60        # killing the same player again within this time gives no coins
+
+killstreak:
+  announce-end-at: 5           # broadcast when a streak of at least this many is ended (0 = never)
+  # Reward keys are the streak number that triggers them.
+  # Options: coins, items (MATERIAL[:data][*amount]), commands (%player%), message, broadcast
+  rewards:
+    3:
+      coins: 25
+      message: "&a&lKILLSTREAK! &7You are on a &e3 &7kill streak!"
+    5:
+      coins: 50
+      items:
+        - "GOLDEN_APPLE*2"
+      broadcast: "&6%player% &eis on a &c5 &ekill streak!"
+    10:
+      coins: 150
+      items:
+        - "GOLDEN_APPLE*4"
+        - "ENDER_PEARL*2"
+      broadcast: "&6&l%player% &eis on a &c&l10 &ekill streak!"
+    20:
+      coins: 400
+      items:
+        - "GOLDEN_APPLE:1*1"
+      broadcast: "&4&l%player% &cIS UNSTOPPABLE &7(&e20 &7kill streak!)"
+
+scoreboard:
+  enabled: true
+  title: "&6&lBOX PVP"
+  # Placeholders: %kills% %deaths% %kdr% %streak% %best% %coins% %name% %rank%
+  lines:
+    - ""
+    - "&7Kills: &f%kills%"
+    - "&7Deaths: &f%deaths%"
+    - "&7K/D: &f%kdr%"
+    - "&7Streak: &e%streak%"
+    - "&7Best: &e%best%"
+    - ""
+    - "&6Coins: &e%coins%"
+
+# Enchant-bottle rain. Applies to every region with the xp-rain flag set to allow.
+# Bottles spawn at the TOP layer of the region, so make the region's top layer the
+# air just under your ceiling.
+xp-rain:
+  interval-ticks: 20
+  bottles-per-pulse: 3
+  xp-per-bottle: 8
+
+# Launch pads. Pads must be this block type (stand on it and use /launchpad create).
+# Stepping on one seats you on an invisible armour stand that the server glides to the landing point
+# (smooth start and stop), then places you exactly on it.
+launchpad:
+  block: GOLD_BLOCK
+  immunity-seconds: 4          # damage immunity after landing (ends instantly if you attack)
+  flight-speed: 1.0            # average blocks per tick (20 ticks = 1 second) - higher = faster flights
+  min-ticks: 14                # shortest possible flight
+  max-ticks: 160               # longest possible flight
+  default-arc: 0.0             # extra height at mid-flight in blocks. 0 = dead straight line (override per pad with /launchpad arc)
+  seat-offset: 0.35            # height tweak for the invisible seat; raise/lower if riders look sunk or floating
+  cooldown-ms: 1500
+
+mines:
+  regen-seconds: 8
+  require-pickaxe-tier: true   # ores need the right pickaxe (stone for iron, iron for gold/diamond...)
+  tool-wear: true              # mining wears down the pickaxe
+  max-fill-blocks: 200000      # safety limit for /mine fill
+  # Blocks that fill/regenerate a mine and their weights (override per mine with /mine block).
+  default-blocks:
+    COBBLESTONE: 40
+    COAL_ORE: 20
+    IRON_ORE: 18
+    GOLD_ORE: 8
+    REDSTONE_ORE: 6
+    LAPIS_ORE: 5
+    DIAMOND_ORE: 3
+  # Auto-smelt: what each mined drop turns into. (Cobblestone is NOT smelted by default
+  # because players need it to craft stone tools - add COBBLESTONE: STONE if you want that.)
+  smelt:
+    IRON_ORE: IRON_INGOT
+    GOLD_ORE: GOLD_INGOT
+    SAND: GLASS
+    NETHERRACK: NETHER_BRICK_ITEM
+
+shop:
+  # SELLER NPC = players BUY supplies from it.   BUYER NPC = players SELL resources to it.
+  seller-npc-name: "&6&lSeller"
+  buyer-npc-name: "&b&lBuyer"
+  buy-menu-title: "&b&lSupply Shop"       # menu opened from the Seller NPC
+  sell-menu-title: "&6&lSell Resources"   # menu opened from the Buyer NPC
+  # --- what players can SELL to the Buyer NPC ---
+  # item: MATERIAL or "MATERIAL:data"   price: coins   name: optional display name
+  sell:
+    - {item: COBBLESTONE, price: 1}
+    - {item: COAL, price: 2}
+    - {item: REDSTONE, price: 1}
+    - {item: "INK_SACK:4", price: 2, name: "Lapis Lazuli"}
+    - {item: IRON_INGOT, price: 6}
+    - {item: GOLD_INGOT, price: 10}
+    - {item: DIAMOND, price: 40}
+    - {item: EMERALD, price: 50}
+  # --- what players can BUY from the Seller NPC ---
+  # amount: optional stack size.  potion: optional PotionType (item must be POTION or SPLASH_POTION)
+  # upgraded / extended: optional true/false for potions.
+  buy:
+    - {item: ENDER_PEARL, price: 80}
+    - {item: ARROW, price: 20, amount: 16}
+    - {item: GOLDEN_APPLE, price: 120}
+    - {item: "GOLDEN_APPLE:1", price: 900, name: "Enchanted Golden Apple"}
+    - {item: WEB, price: 40, amount: 2, name: "Cobweb"}
+    - {item: WATER_BUCKET, price: 40}
+    - {item: FLINT_AND_STEEL, price: 50}
+    - {item: TNT, price: 150, amount: 2}
+    - {item: SHIELD, price: 120}
+    - {item: SPLASH_POTION, potion: INSTANT_HEAL, upgraded: true, price: 100, name: "Splash Healing II"}
+    - {item: POTION, potion: SPEED, price: 90, name: "Potion of Speed"}
+    - {item: POTION, potion: FIRE_RESISTANCE, price: 90, name: "Fire Resistance"}
+
+# Training dummy (/dummy create). Can't be hurt or knocked back; shows your DPS as you hit it.
+dummy:
+  name: "&c&lTraining Dummy"
+  session-timeout-seconds: 5   # a DPS "session" ends after this long without a hit
+  actionbar: true              # live readout above the hotbar on every hit
+  chat-summary: true           # results in chat when you stop hitting it
+
+# Exploit protection
+combat-log:
+  enabled: true                # quitting within combat-tag-seconds of PvP counts as a death (and a kill for your opponent)
+
+pearls:
+  cooldown-seconds: 10         # ender pearl cooldown (0 = off)
+  block-into-safe-zones: true  # can't pearl / chorus-fruit from a PvP area into a no-PvP region (pearl is refunded)
+
+# Cosmetic ranks (/rank ...). Admin-only; they grant no permissions.
+ranks:
+  chat-prefix: true
+  tab-list: true               # note: 1.12 cuts tab-list names to 16 characters
+  chat-format: "%prefix% &f%player%&7: &f%message%"
