@@ -92,7 +92,7 @@ scoreboard if you want it there too. Chat layout is `ranks.chat-format` in the c
 2. Walk to where players should land and run `/launchpad setlanding <name>`.
 3. Walking onto the gold block seats the player on an invisible armour stand that the server glides smoothly
    to the landing point (gentle start and stop, no fall damage), then puts them exactly on the landing spot.
-   They can't hop off mid-flight, so there's no drifting, overshooting or missing the target.
+   If a rider presses sneak to hop off, they are put straight back on, so there's no drifting, overshooting or missing the target.
 4. By default the flight is a **straight line**. If a wall or roof is in the way, add height with
    `/launchpad arc <name> <blocks>` (e.g. `/launchpad arc <name> 6` rises 6 blocks in the middle;
    `/launchpad arc <name> default` resets it). `launchpad.default-arc` in the config sets the default.

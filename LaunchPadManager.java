@@ -20,7 +20,6 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
-import org.spigotmc.event.entity.EntityDismountEvent;
 
 import java.io.File;
 import java.io.IOException;
@@ -235,18 +234,6 @@ public class LaunchPadManager implements Listener {
         }
     }
 
-    /** You can't hop off the seat mid-flight. */
-    @EventHandler(priority = EventPriority.HIGH)
-    public void onDismount(EntityDismountEvent e) {
-        if (!(e.getEntity() instanceof Player)) {
-            return;
-        }
-        Flight f = flights.get(e.getEntity().getUniqueId());
-        if (f != null && !f.finishing && f.isSeat(e.getDismounted())) {
-            e.setCancelled(true);
-        }
-    }
-
     // ------------------------------------------------------------ triggering
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -346,6 +333,7 @@ public class LaunchPadManager implements Listener {
         private final double seatOffset;
         private int tick = 0;
         private int stalled = 0;
+        private int remounts = 0;
         private Vector lastSeatPos;
         boolean finishing = false;
 
@@ -361,10 +349,6 @@ public class LaunchPadManager implements Listener {
             this.lastSeatPos = seat.getLocation().toVector();
         }
 
-        boolean isSeat(Entity e) {
-            return e != null && e.getUniqueId().equals(seatId);
-        }
-
         /** Where the player's feet should be at progress u (0..1). Pure geometry: a line, plus an optional arc. */
         private Vector pointAt(double u) {
             double x = start.getX() + (target.getX() - start.getX()) * u;
@@ -378,9 +362,17 @@ public class LaunchPadManager implements Listener {
             if (finishing) {
                 return;
             }
-            if (!player.isOnline() || player.isDead() || !seat.isValid() || !seat.getPassengers().contains(player)) {
+            if (!player.isOnline() || player.isDead() || !seat.isValid()) {
                 finish();
                 return;
+            }
+            if (!seat.getPassengers().contains(player)) {
+                // Pressing sneak dismounts the rider. (1.12 can't cancel that) so put them straight back on.
+                remounts++;
+                if (remounts > 40 || !seat.addPassenger(player)) {
+                    finish();
+                    return;
+                }
             }
             tick++;
             if (tick > total) {
